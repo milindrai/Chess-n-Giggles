@@ -1,18 +1,6 @@
-import { WebSocket } from 'ws';
+import { WebSocket } from "ws";
 import { Game } from "./Game";
-import {
-  GAME_OVER,
-  INIT_GAME,
-  JOIN_GAME,
-  MOVE,
-  OPPONENT_DISCONNECTED,
-  JOIN_ROOM,
-  GAME_JOINED,
-  GAME_NOT_FOUND,
-  GAME_ALERT,
-  GAME_ADDED,
-  GAME_ENDED,
-} from './messages';
+import { INIT_GAME } from "./messages";
 
 
 
@@ -37,42 +25,20 @@ export class GameManager{
         this.users=this.users.filter(user=>user !==socket);
     }
 
-    private addHandler(user: User) {
-        user.socket.on('message', async (data) => {
-          const message = JSON.parse(data.toString());
-          if (message.type === INIT_GAME) {
-            if (this.pendingGameId) {
-              const game = this.games.find((x) => x.gameId === this.pendingGameId);
-              if (!game) {
-                console.error('Pending game not found?');
-                return;
-              }
-              if (user.userId === game.player1UserId) {
-                SocketManager.getInstance().broadcast(
-                  game.gameId,
-                  JSON.stringify({
-                    type: GAME_ALERT,
-                    payload: {
-                      message: 'Trying to Connect with yourself?',
-                    },
-                  }),
-                );
-                return;
-              }
-              SocketManager.getInstance().addUser(user, game.gameId);
-              await game?.updateSecondPlayer(user.userId);
-              this.pendingGameId = null;
-            } else {
-              const game = new Game(user.userId, null);
-              this.games.push(game);
-              this.pendingGameId = game.gameId;
-              SocketManager.getInstance().addUser(user, game.gameId);
-              SocketManager.getInstance().broadcast(
-                game.gameId,
-                JSON.stringify({
-                  type: GAME_ADDED,
-                }),
-              );
-            }
-          }
+    private addHandler(socket:WebSocket){
+        // handle messages from users
+            socket.on('message',(data)=>{
+                const message=JSON.parse(data.toString());
+                if(message.type==='INIT_GAME'){
+                    if(this.pendingUser !== null){
+                        const game=new Game (this.pendingUser,socket);
+                        this.games.push(game);
+                        this.pendingUser=null;
+                    }
+                    else{
+                        this.pendingUser=socket;
+                    }
+                }
+            }) 
+    }
 }
