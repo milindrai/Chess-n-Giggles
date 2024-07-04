@@ -6,3 +6,5 @@ export const Button = ({onClick,children}: {onClick: () => void,children: React.
         </button>
     );
 };
+
+export default Button;

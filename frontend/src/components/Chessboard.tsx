@@ -1,13 +1,21 @@
-export const ChessBoard = () => {
-    return (
-        <div className="grid grid-cols-8 grid-rows-8">
-            {Array.from({ length: 8 }, (_, i) => (
-                <div key={i} className="flex justify-center">
-                    {Array.from({ length: 8 }, (_, j) => (
-                        <div key={j} className="border-2 border-black"></div>
-                    ))}
-                </div>
-            ))}
-        </div>
-    );
-};
+import { Color, PieceSymbol, Square } from "chess.js";
+
+export const ChessBoard = ({ board }: {
+    board: ({
+        square: Square;
+        type: PieceSymbol;
+        color: Color;
+    } | null)[][]
+}) => {
+    return <div className="text-white-200">
+            {board.map((row, i) => {
+                return <div key={i} className="flex justify-center">
+                    {row.map((square, j) => {
+                        return <div key={j} className="w-12 h-12 flex justify-center items-center">
+                            {square ? square.type : ""}
+                        </div>;
+                    })}
+                </div>;
+            })}
+    </div>
+}
